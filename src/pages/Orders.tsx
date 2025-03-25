@@ -1,264 +1,238 @@
 
-import React, { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import OrderCard from '@/components/dashboard/OrderCard';
-import { Order } from '@/lib/types';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
 import { 
-  DropdownMenu,
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  DropdownMenu, 
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Search, Filter, CalendarIcon } from 'lucide-react';
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Order } from "@/lib/types";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Search, MoreVertical, Filter } from "lucide-react";
 
-// Mock data for orders (same as Dashboard)
-const mockOrders: Order[] = [
+const dummyOrders: Order[] = [
   {
-    id: '1',
-    title: 'Market Research for Software Startup',
-    clientName: 'TechVision Inc.',
-    clientEmail: 'contact@techvision.com',
-    description: 'Need comprehensive market research for a new software product in the productivity space.',
-    expertise: ['Market Research', 'Software'],
-    status: 'pending',
-    createdAt: new Date('2023-06-01'),
-    updatedAt: new Date('2023-06-01'),
-    priority: 'high',
-    dueDate: new Date('2023-06-15')
+    id: "ORD-001",
+    title: "Market Research Analysis",
+    clientName: "Acme Corporation",
+    clientEmail: "contact@acmecorp.com",
+    description: "Comprehensive market analysis for new product launch",
+    expertise: ["Market Research", "Data Analysis"],
+    status: "pending",
+    createdAt: new Date("2023-09-15"),
+    updatedAt: new Date("2023-09-15"),
+    priority: "high",
+    dueDate: new Date("2023-10-15"),
   },
   {
-    id: '2',
-    title: 'Financial Projection Review',
-    clientName: 'GrowthCapital LLC',
-    clientEmail: 'finance@growthcapital.com',
-    description: 'Review of 5-year financial projections for an e-commerce business seeking funding.',
-    expertise: ['Financial Analysis', 'E-commerce'],
-    status: 'in_progress',
-    createdAt: new Date('2023-05-25'),
-    updatedAt: new Date('2023-05-28'),
-    assignedTo: 'consultant-1',
-    priority: 'medium',
-    dueDate: new Date('2023-06-10'),
-    progress: 45
+    id: "ORD-002",
+    title: "Social Media Strategy",
+    clientName: "TechStart Inc",
+    clientEmail: "marketing@techstart.io",
+    description: "Develop a social media strategy for Q4",
+    expertise: ["Digital Marketing", "Social Media"],
+    status: "assigned",
+    assignedTo: "user-123",
+    createdAt: new Date("2023-09-10"),
+    updatedAt: new Date("2023-09-12"),
+    priority: "medium",
+    dueDate: new Date("2023-10-01"),
   },
   {
-    id: '3',
-    title: 'Marketing Strategy Development',
-    clientName: 'Bloom Brands',
-    clientEmail: 'marketing@bloombrands.com',
-    description: 'Development of comprehensive digital marketing strategy for a beauty brand launch.',
-    expertise: ['Marketing', 'Digital Strategy'],
-    status: 'review',
-    createdAt: new Date('2023-05-20'),
-    updatedAt: new Date('2023-05-31'),
-    assignedTo: 'consultant-1',
-    priority: 'medium',
-    dueDate: new Date('2023-06-05'),
-    progress: 90
+    id: "ORD-003",
+    title: "Financial Forecast Model",
+    clientName: "Global Finance Ltd",
+    clientEmail: "planning@globalfinance.com",
+    description: "Create a 5-year financial forecast model",
+    expertise: ["Financial Analysis", "Modeling"],
+    status: "in_progress",
+    assignedTo: "user-456",
+    createdAt: new Date("2023-09-05"),
+    updatedAt: new Date("2023-09-07"),
+    priority: "high",
+    progress: 45,
+    dueDate: new Date("2023-09-30"),
   },
   {
-    id: '4',
-    title: 'Supply Chain Optimization',
-    clientName: 'GlobalGoods Inc.',
-    clientEmail: 'operations@globalgoods.com',
-    description: 'Analysis and recommendations for optimizing international supply chain with focus on cost reduction.',
-    expertise: ['Supply Chain', 'Operations'],
-    status: 'completed',
-    createdAt: new Date('2023-05-10'),
-    updatedAt: new Date('2023-05-30'),
-    assignedTo: 'consultant-2',
-    priority: 'low',
-    progress: 100
+    id: "ORD-004",
+    title: "HR Policy Review",
+    clientName: "Northwest Services",
+    clientEmail: "hr@northwest.org",
+    description: "Review and update employee handbook and policies",
+    expertise: ["HR", "Policy Development"],
+    status: "review",
+    assignedTo: "user-789",
+    createdAt: new Date("2023-08-28"),
+    updatedAt: new Date("2023-09-14"),
+    priority: "low",
+    progress: 90,
+    dueDate: new Date("2023-09-20"),
   },
   {
-    id: '5',
-    title: 'HR Policy Development',
-    clientName: 'Talent Solutions Co.',
-    clientEmail: 'hr@talentsolutions.com',
-    description: 'Create comprehensive HR policies for a growing technology company with 50+ employees.',
-    expertise: ['Human Resources', 'Policy Development'],
-    status: 'pending',
-    createdAt: new Date('2023-06-02'),
-    updatedAt: new Date('2023-06-02'),
-    priority: 'medium',
-    dueDate: new Date('2023-06-20')
-  },
-  {
-    id: '6',
-    title: 'Product Pricing Strategy',
-    clientName: 'InnovateTech',
-    clientEmail: 'product@innovatetech.com',
-    description: 'Develop optimal pricing strategy for a new SaaS product targeting enterprise customers.',
-    expertise: ['Pricing Strategy', 'SaaS'],
-    status: 'pending',
-    createdAt: new Date('2023-06-03'),
-    updatedAt: new Date('2023-06-03'),
-    priority: 'high',
-    dueDate: new Date('2023-06-18')
+    id: "ORD-005",
+    title: "Supply Chain Optimization",
+    clientName: "Manufacturing Plus",
+    clientEmail: "operations@mfgplus.com",
+    description: "Analyze and optimize supply chain processes",
+    expertise: ["Supply Chain", "Operations"],
+    status: "completed",
+    assignedTo: "user-123",
+    createdAt: new Date("2023-08-15"),
+    updatedAt: new Date("2023-09-10"),
+    priority: "medium",
+    progress: 100,
+    dueDate: new Date("2023-09-15"),
   },
 ];
 
 const Orders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [userRole, setUserRole] = useState<string>('consultant');
-  
-  useEffect(() => {
-    // Get user role from localStorage
-    const role = localStorage.getItem('userRole') || 'consultant';
-    setUserRole(role);
-    
-    // Load orders
-    const loadOrders = () => {
-      // In a real app, this would be an API call
-      const filteredData = role === 'admin' 
-        ? mockOrders 
-        : mockOrders.filter(order => 
-            order.assignedTo === 'consultant-1' || 
-            order.status === 'pending'
-          );
-      
-      setOrders(filteredData);
-      setFilteredOrders(filteredData);
+  const [orders, setOrders] = useState<Order[]>(dummyOrders);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: { [key: string]: { label: string; variant: "default" | "secondary" | "destructive" | "outline" } } = {
+      pending: { label: "Pending", variant: "outline" },
+      assigned: { label: "Assigned", variant: "secondary" },
+      in_progress: { label: "In Progress", variant: "default" },
+      review: { label: "Review", variant: "secondary" },
+      completed: { label: "Completed", variant: "default" },
+      cancelled: { label: "Cancelled", variant: "destructive" },
     };
+
+    const statusInfo = statusMap[status] || { label: status, variant: "outline" };
     
-    loadOrders();
-  }, []);
-  
-  // Filter orders when tab, search or priority filter changes
-  useEffect(() => {
-    let result = [...orders];
-    
-    // Filter by tab (status)
-    if (activeTab !== 'all') {
-      result = result.filter(order => {
-        if (activeTab === 'in_progress_review') {
-          return order.status === 'in_progress' || order.status === 'review';
-        }
-        return order.status === activeTab;
-      });
-    }
-    
-    // Filter by search term
-    if (searchTerm) {
-      result = result.filter(order => 
-        order.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Filter by priority
-    if (priorityFilter !== 'all') {
-      result = result.filter(order => order.priority === priorityFilter);
-    }
-    
-    setFilteredOrders(result);
-  }, [activeTab, searchTerm, priorityFilter, orders]);
-  
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    // Update order status (in a real app this would be an API call)
-    const updatedOrders = orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: newStatus as any, updatedAt: new Date() } 
-        : order
-    );
-    
-    setOrders(updatedOrders);
+    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
-  
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Work Orders</h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage all client work orders.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <Tabs 
-            defaultValue="all" 
-            className="w-full sm:w-auto"
-            onValueChange={setActiveTab}
-          >
-            <TabsList>
-              <TabsTrigger value="all">All Orders</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="in_progress_review">In Progress</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search orders..."
-                className="pl-8 min-w-[200px]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Filter className="h-4 w-4" />
-                  <span>{priorityFilter === 'all' ? 'All Priorities' : `${priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)} Priority`}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuRadioGroup 
-                  value={priorityFilter} 
-                  onValueChange={setPriorityFilter}
-                >
-                  <DropdownMenuRadioItem value="all">All Priorities</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="low">Low Priority</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="medium">Medium Priority</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="high">High Priority</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <div className="flex-1 space-y-4 p-4 md:p-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
+        <div className="flex items-center gap-2">
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search orders..."
+              className="w-full pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map(order => (
-              <OrderCard 
-                key={order.id} 
-                order={order} 
-                userRole={userRole} 
-                onStatusChange={handleStatusChange}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">No orders found</p>
-              {activeTab !== 'all' && (
-                <Button 
-                  variant="link" 
-                  onClick={() => setActiveTab('all')}
-                  className="mt-2"
-                >
-                  View all orders
-                </Button>
-              )}
-            </div>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Status</DropdownMenuItem>
+              <DropdownMenuItem>Priority</DropdownMenuItem>
+              <DropdownMenuItem>Date</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>New Order</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Order</DialogTitle>
+                <DialogDescription>
+                  Create a new work order for a client.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                {/* Form fields would go here */}
+                <p className="text-sm text-muted-foreground">Order form fields (title, client info, details, etc.)</p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+                <Button>Create</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
-    </DashboardLayout>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell>{order.title}</TableCell>
+                  <TableCell>{order.clientName}</TableCell>
+                  <TableCell>{order.createdAt.toLocaleDateString()}</TableCell>
+                  <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell className="capitalize">{order.priority}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem>Edit Order</DropdownMenuItem>
+                        <DropdownMenuItem>Change Status</DropdownMenuItem>
+                        <DropdownMenuItem>Assign Consultant</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
